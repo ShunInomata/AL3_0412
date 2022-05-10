@@ -49,23 +49,26 @@ void GameScene::Initialize() {
 
 	//カメラ視点座標を設定
 	//viewProjection_.eye = {0, 0, -10};
-	viewProjection_.target = {10, 0, 0};
+	//viewProjection_.target = {10, 0, 0};
 	
-	viewProjection_.up = {cosf(XM_PI / 4.0f), sinf(XM_PI / 4.0f), 0.0f};
+	//viewProjection_.up = {cosf(XM_PI / 4.0f), sinf(XM_PI / 4.0f), 0.0f};
 	
+	//カメラ垂直方向視野角の設定
+	viewProjection_.fovAngleY = XMConvertToRadians(10.0f);
+
+	//アスペクト比を設定
+	viewProjection_.aspectRatio = 1.0f;
+
+	//ニアクリップ距離を設定
+	viewProjection_.nearZ = 52.0f;
+
+	//ファークリップ距離を設定
+	viewProjection_.farZ = 53.0f;
 
 	//ビュープロジェクションの初期化
 	viewProjection_.Initialize();
 
-	//サウンドデータの読み込み
-	//soundDataHandle_ = audio_->LoadWave("se_sad03.wav");
-	//音声再生
-	//audio_->PlayWave(soundDataHandle_);
-	//音量調整
-	//audio_->SetVolume(soundDataHandle_, 0.5f);
-
-	//音声再生
-	//voiceHandle_ = audio_->PlayWave(soundDataHandle_, true);
+	
 
 	
 }
@@ -126,6 +129,26 @@ void GameScene::Update() {
 	//上方向ベクトルを計算(半径1の円周上の座標)
 	viewProjection_.up = {cosf(viewAngle), sinf(viewAngle), 0.0f};
 
+	//FoV変更処理
+	//上キーで視野角が広がる
+	if (input_->PushKey(DIK_W)) {
+		viewProjection_.fovAngleY += 0.01f;
+		viewProjection_.fovAngleY = min(viewProjection_.fovAngleY, XM_PI);
+	//下キーで視野角が広がる
+	} else if (input_->PushKey(DIK_S)) {
+		viewProjection_.fovAngleY -= 0.01f;
+		viewProjection_.fovAngleY = max(viewProjection_.fovAngleY, 0.01f);
+	    
+	}
+
+	//クリップ距離設定を変更
+	//上下キーでニアクリップ距離を変更
+	if (input_->PushKey(DIK_UP)) {
+		viewProjection_.nearZ += 0.1f;
+	} else if (input_->PushKey(DIK_DOWN)) {
+		viewProjection_.nearZ -= 0.1f;
+	}
+
 	//行列の再計算
 	viewProjection_.UpdateMatrix();
 
@@ -142,33 +165,11 @@ void GameScene::Update() {
 	debugText_->Printf(
 	  "up:(%f,%f,%f)", viewProjection_.up.x, viewProjection_.up.y, viewProjection_.up.z);
 	 
-
-	//スプライトの今の座標を取得
-	//XMFLOAT2 position = sprite_->GetPosition();
-	//座標を{2,0}移動
-	//position.x += 2.0f;
-	//position.y += 1.0f;
-	//移動した座標をスプライトに反映
-	//sprite_->SetPosition(position);
-
-	//スペースキーを押した瞬間
-	//if (input_->TriggerKey(DIK_SPACE)) {
-		//音声停止
-		//audio_->StopWave(voiceHandle_);
-	//}
-
-	//デバックテキストの表示
-	//debugText_->Print("Kaizokuou ni oreha naru.", 50, 50, 1.0f);
-	//書式指定付き表示
-	//debugText_->SetPos(50, 70);
-	//debugText_->Printf("year:%d", 2001);
-
-	//変数の値をインクリメント
-	//value_++;
-	//値を含んだ文字列
-	//std::string strDebug = std::string("value:") + std::to_string(value_);
-	//デバッグテキストの表示
-	//debugText_->Print(strDebug, 50, 50, 1.0f);
+	debugText_->SetPos(50, 110);
+	debugText_->Printf("forAngleY(Degree):%f", XMConvertToDegrees(viewProjection_.fovAngleY));
+	
+	debugText_->SetPos(50, 130);
+	debugText_->Printf("nearZ:%f", viewProjection_.nearZ);
 }
 
 void GameScene::Draw() {
